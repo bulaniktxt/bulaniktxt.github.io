@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>bulanık</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+
+        #logo {
+            position: left;
+            top: 10px;
+            left: 10px;
+            font-size: 48px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="logo">bulanık</div>
+
+    <div>
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
+        <textarea id="message" placeholder=""></textarea>
+        <button onclick="sendMessage()">Gönder</button>
+    </div>
+
+    <div id="messageContainer"></div>
+
+    <button onclick="downloadSiteContent()">Site İçeriğini İndir</button>
+    <button onclick="deleteSelectedMessages()">Seçili Mesajları Sil</button>
+
+    <script>
+        function sendMessage() {
+            var username = document.getElementById("username").value;
+            var message = document.getElementById("message").value;
+            var currentDate = new Date().toLocaleString();
+
+            var newMessage = {
+                username: username,
+                message: message,
+                date: currentDate
+            };
+
+            saveMessage(newMessage);
+            displayMessage(newMessage);
+        }
+
+        function saveMessage(message) {
+            var messages = localStorage.getItem("messages");
+
+            if (messages) {
+                messages = JSON.parse(messages);
+                messages.push(message);
+            } else {
+                messages = [message];
+            }
+
+            localStorage.setItem("messages", JSON.stringify(messages));
+        }
+
+        function displayMessage(message) {
+            var messageContainer = document.getElementById("messageContainer");
+            var messageElement = document.createElement("div");
+            messageElement.className = "message";
+            messageElement.innerHTML = '<input type="checkbox" class="messageCheckbox"> <strong>' + message.username + ' (' + message.date + '):</strong> ' + message.message;
+            messageContainer.appendChild(messageElement);
+        }
+
+        function downloadSiteContent() {
+            var messages = localStorage.getItem("messages");
+
+            if (messages) {
+                var currentDate = new Date().toLocaleDateString();
+                var fileName = "site_content_" + currentDate + ".txt";
+                var content = "Site İçeriği - Tarih: " + currentDate + "\n\n";
+
+                messages = JSON.parse(messages);
+
+                messages.forEach(function(message) {
+                    content += message.username + " (" + message.date + "): " + message.message + "\n";
+                });
+
+                var element = document.createElement("a");
+                element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(content));
+                element.setAttribute("download", fileName);
+                element.style.display = "none";
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }
+        }
+
+        function deleteSelectedMessages() {
+            var checkboxes = document.getElementsByClassName("messageCheckbox");
+            var messages = localStorage.getItem("messages");
+
+            if (messages) {
+                messages = JSON.parse(messages);
+                var updatedMessages = [];
+
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (!checkboxes[i].checked) {
+                        updatedMessages.push(messages[i]);
+                    }
+                }
+
+                localStorage.setItem("messages", JSON.stringify(updatedMessages));
+                displayMessages(updatedMessages);
+            }
+        }
+
+        function displayMessages(messages) {
+            var messageContainer = document.getElementById("messageContainer");
+            messageContainer.innerHTML = "";
+
+            messages.forEach(function(message) {
+                displayMessage(message);
+            });
+        }
+
+        function loadMessages() {
+            var messages = localStorage.getItem("messages");
+
+            if (messages) {
+                messages = JSON.parse(messages);
+                displayMessages(messages);
+            }
+        }
+
+        loadMessages();
+    </script>
+</body>
+</html>
